@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>观星图鉴 · 敦煌星图3D天球</title>
+<style>
+:root{--bg:#05070F;--panel:#0B1020;--gold:#C9A25C;--gold-bright:#E8C97E;
+  --star-warm:#F3D9A4;--ink:#E9E2D0;--ink-dim:#A89F8B;--ecliptic:#7FA6C9;}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{min-height:100%;background:
+  radial-gradient(120% 90% at 50% -10%,rgba(201,162,92,.07),rgba(201,162,92,0) 55%),
+  linear-gradient(165deg,#0B1020 0%,#070A16 60%,#05070F 100%);
+  color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;padding-bottom:60px}
+a{color:inherit}
+.top{display:flex;align-items:baseline;gap:14px;padding:22px 28px 12px;
+  border-bottom:1px solid rgba(201,162,92,.18);position:sticky;top:0;z-index:5;
+  background:linear-gradient(180deg,rgba(7,10,22,.96),rgba(7,10,22,.82));
+  backdrop-filter:blur(8px)}
+.top h1{margin:0;font-family:"Noto Serif SC","STKaiti","KaiTi","SimSun",serif;font-size:26px;
+  letter-spacing:.24em;color:var(--gold-bright);font-weight:700}
+.top .sub{font-size:11px;letter-spacing:.28em;color:var(--ink-dim)}
+.top .back{margin-left:auto;padding:7px 16px;border-radius:18px;border:1px solid rgba(201,162,92,.4);
+  background:rgba(201,162,92,.08);color:var(--gold-bright);font-size:12.5px;text-decoration:none;
+  letter-spacing:.1em;transition:all .2s}
+.top .back:hover{background:rgba(201,162,92,.22)}
+.wrap{max-width:1100px;margin:0 auto;padding:18px 28px}
+.atl-progress{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:12px;color:var(--ink-dim)}
+.atl-progress .bar{flex:1;max-width:340px;height:6px;border-radius:3px;background:rgba(201,162,92,.14);overflow:hidden}
+.atl-progress .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#E8C97E,#C9A25C);transition:width .5s ease}
+.atl-group{margin-bottom:22px}
+.atl-group h3{margin:0 0 10px;font-family:"Noto Serif SC","STKaiti","KaiTi","SimSun",serif;font-size:15px;
+  letter-spacing:.2em;font-weight:700;display:flex;align-items:center;gap:8px}
+.atl-group h3 i{width:10px;height:10px;flex:none;transform:rotate(45deg)}
+.atl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.atl-item{position:relative;padding:12px 8px 10px;border-radius:10px;text-align:center;cursor:pointer;
+  border:1px solid rgba(201,162,92,.18);background:rgba(201,162,92,.04);transition:all .18s}
+.atl-item:hover{background:rgba(201,162,92,.14);border-color:rgba(232,201,126,.5);transform:translateY(-2px)}
+.atl-item b{display:block;font-family:"Noto Serif SC","STKaiti","KaiTi","SimSun",serif;font-size:17px;
+  letter-spacing:.1em;font-weight:700}
+.atl-item .m{display:block;font-size:10px;color:var(--ink-dim);margin-top:3px;letter-spacing:.04em}
+.atl-item.lit{border-color:rgba(232,201,126,.55);background:rgba(201,162,92,.12);
+  box-shadow:0 0 14px rgba(232,201,126,.14) inset}
+.atl-item.lit::after{content:'✦';position:absolute;top:5px;right:8px;font-size:10px;color:var(--gold-bright)}
+.atl-item:not(.lit) b{opacity:.42}
+/* 详情页顶部沿用主站 .pg-head 的观感 */
+.pg-head{flex:none;display:flex;align-items:baseline;gap:14px;padding:0 0 12px;
+  border-bottom:1px solid rgba(201,162,92,.18);margin-bottom:4px}
+.pg-head h2{margin:0;font-family:"Noto Serif SC","STKaiti","KaiTi","SimSun",serif;font-size:24px;
+  letter-spacing:.24em;color:var(--gold-bright);font-weight:700}
+.pg-head .pg-sub{font-size:11px;letter-spacing:.3em;color:var(--ink-dim)}
+.pg-head .pg-back{margin-left:auto;padding:6px 16px;border-radius:18px;border:1px solid rgba(201,162,92,.4);
+  background:rgba(201,162,92,.08);color:var(--gold-bright);font-size:12px;cursor:pointer;
+  font-family:inherit;letter-spacing:.1em;transition:all .2s}
+.pg-head .pg-back:hover{background:rgba(201,162,92,.22)}
+#pageAtlasdetail{z-index:60}
+#pageAtlasdetail .ad-wrap{padding-top:14px}
+@media (max-width:640px){
+  .top{padding:16px 16px 10px;flex-wrap:wrap}
+  .top .back{margin-left:0}
+  .wrap{padding:14px 16px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>观星图鉴</h1>
+  <span class="sub">四象二十八宿 · 观测点亮收集</span>
+  <a class="back" href="敦煌星图3D天球.html">← 返回星空</a>
+</header>
+
+<div class="wrap">
+  <div class="atl-progress">
+    <span id="atlCount">已点亮 0 / 46</span>
+    <span class="bar"><i id="atlBar"></i></span>
+    <span style="font-size:11px">点选条目查看详情，在星空中观察即自动点亮</span>
+  </div>
+  <div id="atlGrids"></div>
+</div>
+
+<!-- ============ 数据（从主文件同步，勿单独修改） ============ -->
+<script>
+window.__ATLAS_STANDALONE = true;
+var STAR_SET = [
+  // 东方苍龙
+  {name:"角", lon:201.3, lat:-11.2, mag:1.0, spec:'B', group:'东', info:"二十八宿之首，东方苍龙第一宿，角宿二星。距星角宿一（室女座α）。'左角李，右角将。'——《石氏星经》"},
+  {name:"亢", lon:213.3, lat:-10.3, mag:4.2, spec:'K', group:'东', info:"东方苍龙第二宿，亢宿四星，距星亢宿一（室女座κ）。亢为天子之廷。"},
+  {name:"氐", lon:222.8, lat:-16.1, mag:2.7, spec:'A', group:'东', info:"东方苍龙第三宿，氐宿四星，距星氐宿一（天秤座α）。氐为天根，主后妃之府。"},
+  {name:"房", lon:239.8, lat:-26.1, mag:2.9, spec:'B', group:'东', info:"东方苍龙第四宿，房宿四星，距星房宿一（天蝎座π）。房为明堂，天子布政之宫。"},
+  {name:"心", lon:245.3, lat:-25.6, mag:2.9, spec:'M', group:'东', info:"东方苍龙第五宿，心宿三星，距星心宿一（天蝎座σ）。心宿二即大火星（Antares），上古以大火授时。"},
+  {name:"尾", lon:253.0, lat:-38.0, mag:3.0, spec:'B', group:'东', info:"东方苍龙第六宿，尾宿九星，距星尾宿一（天蝎座μ）。尾为后宫，主子孙。"},
+  {name:"箕", lon:271.3, lat:-30.4, mag:3.0, spec:'K', group:'东', info:"东方苍龙第七宿，箕宿四星，距星箕宿一（人马座γ）。箕主簸扬，能致风气。"},
+  // 北方玄武
+  {name:"斗", lon:281.3, lat:-27.0, mag:3.2, spec:'B', group:'北', info:"北方玄武第一宿，南斗六星，距星斗宿一（人马座φ）。斗为天庙，主爵禄。"},
+  {name:"牛", lon:305.3, lat:-14.8, mag:3.1, spec:'G', group:'北', info:"北方玄武第二宿，牛宿六星，距星牛宿一（摩羯座β）。主牛马之事。"},
+  {name:"女", lon:311.8, lat:-9.5, mag:3.8, spec:'A', group:'北', info:"北方玄武第三宿，女宿四星，距星女宿一（宝瓶座ε）。主布帛裁制、嫁娶之事。"},
+  {name:"虚", lon:322.8, lat:-5.6, mag:2.9, spec:'G', group:'北', info:"北方玄武第四宿，虚宿二星，距星虚宿一（宝瓶座β）。主死丧哭泣，亦主邑居祭祀。"},
+  {name:"危", lon:331.3, lat:-0.3, mag:2.9, spec:'G', group:'北', info:"北方玄武第五宿，危宿三星，距星危宿一（宝瓶座α）。危为屋盖，主天府架屋。"},
+  {name:"室", lon:346.3, lat:15.2, mag:2.5, spec:'B', group:'北', info:"北方玄武第六宿，营室二星，距星室宿一（飞马座α）。主营造宫室，立冬前后昏中。"},
+  {name:"壁", lon:3.3, lat:15.2, mag:2.8, spec:'B', group:'北', info:"北方玄武第七宿，东壁二星，距星壁宿一（飞马座γ）。主文章图书之府。"},
+  // 西方白虎
+  {name:"奎", lon:14.3, lat:23.4, mag:4.3, spec:'G', group:'西', info:"西方白虎第一宿，奎宿十六星，距星奎宿一（仙女座η）。奎主武库兵。"},
+  {name:"娄", lon:28.5, lat:20.8, mag:2.6, spec:'A', group:'西', info:"西方白虎第二宿，娄宿三星，距星娄宿一（白羊座β）。主聚众兴兵、苑牧。"},
+  {name:"胃", lon:40.86, lat:27.71, mag:4.7, spec:'B', group:'西', info:"西方白虎第三宿，胃宿三星，距星胃宿一（白羊座35）。胃为天仓，主仓廪五谷。"},
+  {name:"昴", lon:55.8, lat:24.0, mag:1.6, spec:'B', group:'西', info:"西方白虎第四宿，昴宿七星（昴星团M45），距星昴宿一（金牛座17）。昴为髦头，主狱事，冬至后昏中。"},
+  {name:"毕", lon:67.15, lat:19.18, mag:3.5, spec:'G', group:'西', info:"西方白虎第五宿，毕宿八星，距星毕宿一（金牛座ε）。毕主边兵弋猎，天雨师。"},
+  {name:"觜", lon:83.8, lat:9.9, mag:3.5, spec:'O', group:'西', info:"西方白虎第六宿，觜宿三星，距星觜宿一（猎户座λ）。觜为虎首，主葆旅事。"},
+  {name:"参", lon:83.0, lat:-0.3, mag:2.2, spec:'B', group:'西', info:"西方白虎第七宿，参宿七星，距星参宿一（猎户座δ）。参为白虎，主杀伐。"},
+  // 南方朱雀
+  {name:"井", lon:95.5, lat:22.5, mag:2.9, spec:'M', group:'南', info:"南方朱雀第一宿，井宿八星，距星井宿一（双子座μ）。井主水衡事，主泉源。"},
+  {name:"鬼", lon:127.9, lat:18.09, mag:5.3, spec:'K', group:'南', info:"南方朱雀第二宿，鬼宿四星，距星鬼宿一（巨蟹座θ）。鬼为天目，主视明察奸。"},
+  {name:"柳", lon:129.41, lat:5.7, mag:4.1, spec:'A', group:'南', info:"南方朱雀第三宿，柳宿八星，距星柳宿一（长蛇座δ）。柳为鸟注，主草木。"},
+  {name:"星", lon:142.0, lat:-8.7, mag:2.0, spec:'K', group:'南', info:"南方朱雀第四宿，星宿七星，距星星宿一（长蛇座α）。星为鸟颈，主衣裳文绣。"},
+  {name:"张", lon:161.5, lat:-16.2, mag:4.1, spec:'G', group:'南', info:"南方朱雀第五宿，张宿六星，距星张宿一（长蛇座υ）。张为鸟嗉，主觞客。"},
+  {name:"翼", lon:164.94, lat:-18.3, mag:4.0, spec:'K', group:'南', info:"南方朱雀第六宿，翼宿二十二星，距星翼宿一（巨爵座α）。翼为羽翮，主远客。"},
+  {name:"轸", lon:184.0, lat:-17.9, mag:2.6, spec:'B', group:'南', info:"南方朱雀第七宿，轸宿四星，距星轸宿一（乌鸦座γ）。轸为车，主风。"},
+  // 北斗七星：真实 J2000 赤经赤纬，按「斗身→斗柄」顺序排列
+  {name:"北斗", lon:183.9, lat:56.0, mag:1.8, spec:'A', group:'北', special:true,
+   stars:[
+     {n:"天枢", lon:165.93, lat:61.75, mag:1.8, spec:'K'},
+     {n:"天璇", lon:165.46, lat:56.38, mag:2.4, spec:'A'},
+     {n:"天玑", lon:178.46, lat:53.69, mag:2.4, spec:'A'},
+     {n:"天权", lon:183.86, lat:57.03, mag:3.3, spec:'A'},
+     {n:"玉衡", lon:193.51, lat:55.96, mag:1.8, spec:'A'},
+     {n:"开阳", lon:200.98, lat:54.93, mag:2.2, spec:'A'},
+     {n:"摇光", lon:206.89, lat:49.31, mag:1.9, spec:'B'}
+   ],
+   info:"北斗七星，距星天枢（大熊座α）。斗柄东指，天下皆春；斗柄南指，天下皆夏；斗柄西指，天下皆秋；斗柄北指，天下皆冬。——《鹖冠子》"},
+
+  /* ===== 三垣（敦煌星图原图即绘有三垣二十八宿体系；zone 为天区代表标记） ===== */
+  {name:"紫微垣", lon:250.0, lat:68.0, mag:2.2, spec:'K', group:'垣', zone:true,
+   info:"三垣之首。北极四周的拱极星区，东西两藩十五星环成宫墙，墙内为帝、后、太子起居之庭，终年不落。"},
+  {name:"太微垣", lon:177.3, lat:14.6, mag:2.1, spec:'A', group:'垣', zone:true,
+   info:"上垣。五帝座居中、十二藩星环卫，为天帝南面听政之廷，相当于狮子、室女座一带。"},
+  {name:"天市垣", lon:258.7, lat:14.4, mag:3.3, spec:'M', group:'垣', zone:true,
+   info:"下垣。帝座居中、二十二藩星环列，为天上聚市交易之所，在武仙、蛇夫座一带。"},
+
+  /* ===== 著名亮星（single：单星精确定位，全部可点击交互） ===== */
+  {name:"织女一", lon:279.23, lat:38.78, mag:0.0, spec:'A', group:'名', single:true,
+   info:"织女星，天琴座α，北天第二亮星。与河鼓二（牛郎）隔银河相望，七夕传说的主角。"},
+  {name:"河鼓二", lon:297.70, lat:8.87, mag:0.8, spec:'A', group:'名', single:true,
+   info:"牛郎星，天鹰座α。与织女一、天津四组成夏季大三角，河鼓两旁小星为「担儿」。"},
+  {name:"天津四", lon:310.36, lat:45.28, mag:1.3, spec:'A', group:'名', single:true,
+   info:"天鹅座α。「天津」即天上的渡口，九星横跨银河最亮处，传说七夕鹊桥在此搭建。"},
+  {name:"天狼", lon:101.29, lat:-16.72, mag:-1.4, spec:'A', group:'名', single:true,
+   info:"天狼星，大犬座α，全天第一亮星。古人以天狼主侵掠，其东南有弧矢九星张弓相向。"},
+  {name:"老人", lon:95.99, lat:-52.70, mag:-0.7, spec:'A', group:'名', single:true,
+   info:"老人星，船底座α，全天第二亮星。中原以北难以见到，「见则天下安泰」。"},
+  {name:"大角", lon:213.92, lat:19.18, mag:-0.1, spec:'K', group:'名', single:true,
+   info:"大角星，牧夫座α，北天第一亮星。与角宿同标苍龙之角，两傍三星为「摄提」，古人以摄提纪年。"},
+  {name:"轩辕十四", lon:152.09, lat:11.97, mag:1.4, spec:'B', group:'名', single:true,
+   info:"狮子座α，轩辕十七星之首，黄道正贴其上。轩辕为黄帝之象，主雷雨。"},
+  {name:"五车二", lon:79.17, lat:46.00, mag:0.1, spec:'G', group:'名', single:true,
+   info:"御夫座α，北天第三亮星。「五车」为天帝的兵车，五车五星连成一个五边形。"},
+  {name:"北落师门", lon:344.41, lat:-29.62, mag:1.2, spec:'A', group:'名', single:true,
+   info:"南鱼座α，秋夜南天唯一亮星。「北落」为羽林军的北军门，师门即军门。"},
+  {name:"南河三", lon:114.83, lat:5.22, mag:0.3, spec:'F', group:'名', single:true,
+   info:"小犬座α。与天狼、参宿四组成冬季大三角，居银河南岸。"},
+  {name:"北河三", lon:116.33, lat:28.03, mag:1.1, spec:'K', group:'名', single:true,
+   info:"双子座β，居银河北岸，与南河三夹河相望，皆属井宿天区的关梁之星。"},
+  {name:"参宿四", lon:88.79, lat:7.41, mag:0.5, spec:'M', group:'名', single:true,
+   info:"猎户座α，红超巨星，冬夜的红色巨星。与天狼、南河三组成冬季大三角。"},
+  {name:"帝星", lon:222.67, lat:74.15, mag:2.1, spec:'K', group:'名', single:true,
+   info:"北极二（小熊座β）。两千多年前的周秦时代，它才是离天极最近的「极星」——因岁差让位于今日的勾陈一。"}
+];
+
+var STAR_PLAIN = {
+  "角":"龙的角。春天的第一组星，古人看它判断春耕开始。",
+  "亢":"龙的脖子。四颗星，古人比作天帝的朝廷。",
+  "氐":"龙的胸腹，又叫「天根」，掌管后宫与宗室。",
+  "房":"龙身中段，叫「明堂」，天子发布政令的地方。",
+  "心":"龙的胸部，中央的大火星（心宿二）特别亮，古人看它定季节。",
+  "尾":"龙的尾巴，九颗星，掌管子孙后代。",
+  "箕":"龙尾末端，像簸箕，古人说它能扇风致雨。",
+  "斗":"南斗六星，像一把小勺子，管爵位和俸禄。",
+  "牛":"管牛马牲畜，与农耕放牧有关。",
+  "女":"管纺织布匹、婚嫁之事。",
+  "虚":"管丧葬、祭祀，也管城市与住宅。",
+  "危":"像屋顶，管房屋宫室营造。",
+  "室":"营室，冬天盖房子、修宫室的时节标志。",
+  "壁":"东壁二星，管书籍文章，是读书人的星。",
+  "奎":"虎尾，像兵器库，管军队武备。",
+  "娄":"虎身，管聚众兴兵，也管放牧。",
+  "胃":"虎腹，像粮仓，管仓库与五谷。",
+  "昴":"虎颈，又叫「髦头」，冬至过后黄昏中天，正南方向最显眼。",
+  "毕":"虎口，管狩猎和边关，还被认为是雨神。",
+  "觜":"虎首，管聚拢物资、储备军粮。",
+  "参":"虎身，也是白虎的主体，管杀伐征战。",
+  "井":"像一口水井，管水源和水利。",
+  "鬼":"像鬼的眼睛，管明察秋毫、辨忠奸。",
+  "柳":"朱雀的嘴，管草木生长。",
+  "星":"朱雀的脖子，管衣服与文绣。",
+  "张":"朱雀的嗉囊，管宴请宾客。",
+  "翼":"朱雀的翅膀，管远方来的客人。",
+  "轸":"像一辆车，管风。",
+  "北斗":"北极附近最亮的一组星，斗柄指向哪边，就是哪个季节。",
+  "紫微垣":"北极四周的皇宫星区，星星终年不落，是天帝的家。",
+  "太微垣":"天帝南面听政的朝堂，五帝座位排成扇形。",
+  "天市垣":"天上的集市，二十二颗藩星围成市场围墙。",
+  "织女一":"夏夜头顶最亮的青白色星——天帝的孙女，年年织云锦。",
+  "河鼓二":"银河东南岸最亮的星，担着一双儿女追赶织女的牛郎。",
+  "天津四":"银河最亮处的大星。天津就是天上的渡口，七夕鹊桥在此。",
+  "天狼":"冬夜全天最亮的星。古人叫它天狼，认为它主侵掠。",
+  "老人":"南天的寿星。在北方看不见它，见则天下安泰。",
+  "大角":"春天的橙色大星，和角宿一起组成苍龙弯弯的角。",
+  "轩辕十四":"狮子座胸口最亮的星，黄道贴着它走过，整条轩辕在星宿之北。",
+  "五车二":"冬夜高悬北天的黄色亮星。五车是天帝的五辆兵车。",
+  "北落师门":"秋夜南天孤悬的亮星，名字来自天军的北大门。",
+  "南河三":"冬夜银河南岸的亮星，与天狼、参宿四成大三角。",
+  "北河三":"冬夜银河北岸的亮星，与南河三隔河相望。",
+  "参宿四":"猎户肩上的红色巨星，冬夜里一眼可辨的红星。",
+  "帝星":"两千多年前它才是北极星——岁差让它把帝位让给了勾陈一。"
+};
+
+var STAR_CULTURE = {
+  "心": {quote:"七月流火，九月授衣。——《诗经·豳风·七月》",
+         plain:"「火」即大火星，也就是心宿二（天蝎座α）。每年夏末它向西下沉，暑气渐退，故称「流火」。",
+         legend:"上古设「火正」专司观测大火以定农时。《左传》载「火出而毕赋」，大火傍晚东升，便该准备春耕。"},
+  "北斗": {quote:"北斗七星，所谓「旋玑玉衡，以齐七政」。——《史记·天官书》",
+         plain:"北斗由斗身四星与斗柄三星组成，是北天最容易辨认的星组，古人以它定方向、分四季。",
+         legend:"《鹖冠子》：「斗柄东指，天下皆春；斗柄南指，天下皆夏；斗柄西指，天下皆秋；斗柄北指，天下皆冬。」"},
+  "昴": {quote:"昴曰髦头，胡星也，为白衣会。——《史记·天官书》",
+         plain:"昴宿即昴星团（七姊妹星团），肉眼可见六七颗星聚成一团，是二十八宿中最富辨识度的一宿。",
+         legend:"《诗经》「嘒彼小星，维参与昴」；古人以昴宿判断胡人兵事，也用它占岁之丰歉。"},
+  "参": {quote:"参为白虎。——《史记·天官书》",
+         plain:"参宿即猎户座腰带与四角，冬夜最壮丽的星区。参宿四为红超巨星，颜色偏橙红。",
+         legend:"「参商」典故：参宿与商宿（心宿）此出彼没，永不相见，后世以喻人相隔绝。杜甫：「人生不相见，动如参与商。」"},
+  "牛": {quote:"牵牛为牺牲。——《史记·天官书》",
+         plain:"牛宿即摩羯座一带的星，古称牵牛，与织女隔银河相望。",
+         legend:"牛郎织女传说：七夕鹊桥相会，源自《古诗十九首》「迢迢牵牛星，皎皎河汉女」。"},
+  "女": {quote:"婺女，其北织女。织女，天女孙也。——《史记·天官书》",
+         plain:"女宿又称婺女，与织女星相邻，主布帛裁制、嫁娶。",
+         legend:"织女为天帝之孙，年年织杼劳役；七夕传说即由此星名衍生。"},
+  "角": {quote:"角二星，为天关，其间天门也。——《晋书·天文志》",
+         plain:"角宿为二十八宿之首，是东方苍龙的龙角，主天门。角宿一为室女座α，春季夜空醒目。",
+         legend:"古以角宿二星的距离与亮度占邦国之事；「龙抬头」即角宿于黄昏东升，象征春耕开始。"},
+  "房": {quote:"房为府，曰天驷。——《史记·天官书》",
+         plain:"房宿四星如车厢，又称天驷，主车驾与明堂布政。",
+         legend:"房宿为苍龙胸腹，古人以此占天子布政、车马之政。"},
+  "亢": {quote:"亢为疏庙，主疾。——《史记·天官书》",
+         plain:"亢宿四星如龙颈，是苍龙的咽喉，古人视之为天帝外朝。",
+         legend:"亢主天子内朝疾病之事；占家以亢星明暗占疫气流行，故民间又呼「瘟星」，实为预警之意。"},
+  "氐": {quote:"天根，氐也。——《尔雅》",
+         plain:"氐宿四星为龙的胸腹根基，故名「天根」，主后妃宗室之事。",
+         legend:"《国语》载「见𣎵木之本谓之氐」：氐宿晨见，正値农事之本，古人以此定春耕之节。"},
+  "尾": {quote:"尾为九子，曰君臣，斥绝不和。——《史记·天官书》",
+         plain:"尾宿九星如龙尾摆动，是苍龙最长的一段。",
+         legend:"《诗经》「绸缪束薪，三星在天」即咏尾宿；东方苍龙七宿连缀如龙，尾宿摆尾，象征子孙繁息。"},
+  "箕": {quote:"箕为敖客，曰口舌。——《史记·天官书》",
+         plain:"箕宿四星形如簸箕，主簸扬、风气。",
+         legend:"《诗经·小雅》：「维南有箕，不可以簸扬。」古人见箕星明亮，便言风起，农谚以之占风。"},
+  "斗": {quote:"南斗注生，北斗注死。——《搜神记》",
+         plain:"斗宿即南斗六星，形如小勺，与北斗遥遥相对。",
+         legend:"管辂教赵颜献酒于南斗星官，添寿至九十九；民间「南斗注生」由此而来，主爵禄寿数。"},
+  "虚": {quote:"虚为哭泣之事。——《史记·天官书》",
+         plain:"虚宿二星居北方玄武中央，古称「玄枵」，主虚耗、丧葬与邑居。",
+         legend:"冬至日虚宿昏中，古人于此日祭天迎岁；「虚」亦喻大厦将倾前的空寂，占家以之戒奢。"},
+  "危": {quote:"危为盖屋，主架屋。——《史记·天官书》",
+         plain:"危宿三星如屋脊之高，主宫室营造与高危之事。",
+         legend:"古人见危星静明，则岁稔屋安；见其动摇，则戒土木之危，故名「危」。"},
+  "室": {quote:"定之方中，作于楚宫。——《诗经·鄘风·定之方中》",
+         plain:"室宿即营室二星，「定」为其古名，主营造宫室。",
+         legend:"营室昏中正当秋末，霜降土冻之前宜筑屋；卫文公徙居楚丘，「作于楚宫」即依此星定时令。"},
+  "壁": {quote:"东壁图书之府。——《晋书·天文志》",
+         plain:"壁宿二星为室宿之邻，主文章图书。",
+         legend:"壁星明则文儒盛。后世以「东壁」代指藏书之府，「奎壁齐辉」喻文运极盛，藏书楼名「壁府」由此而来。"},
+  "奎": {quote:"奎曰封豕，为沟渎。——《史记·天官书》",
+         plain:"奎宿十六星连缀如鞋底，古称「天豕」，主兵戈武备。",
+         legend:"奎星屈曲相钩，主文事亦主武备；宋人以「奎宿」当文章之宿，「奎星高照」即文运昌隆之意。"},
+  "娄": {quote:"娄为聚众。——《史记·天官书》",
+         plain:"娄宿三星主聚众兴兵、苑牧牺牲。",
+         legend:"娄通「系牛」之絫：牧人聚牛马于娄星之下，春祭牺牲由此聚敛，故又主牧养。"},
+  "胃": {quote:"胃为天仓。——《史记·天官书》",
+         plain:"胃宿三星如仓廪之形，主五谷仓储。",
+         legend:"胃星明则仓廪实；古人秋收后夜观胃宿，以验来岁丰歉，故谚曰「胃明岁穰」。"},
+  "毕": {quote:"月离于毕，俾滂沱矣。——《诗经·小雅·渐渐之石》",
+         plain:"毕宿八星形如带柄的捕兔网（毕），主边兵弋猎，又为雨星。",
+         legend:"月亮行经毕宿便有大雨，周人东征「不遑出矣」正叹此象；后世以毕为雨师，农人以之占雨。"},
+  "觜": {quote:"觜为虎首，主葆旅事。——《史记·天官书》",
+         plain:"觜宿三星如虎头之角，主聚敛储备。",
+         legend:"觜主「葆旅」——护佑行旅军粮之数；占家以觜星明则边境安，粮秣足。"},
+  "井": {quote:"东井为水事。——《史记·天官书》",
+         plain:"井宿八星如井字，居朱雀之首，主水衡泉源。",
+         legend:"井星明则水道通；秦地得井宿之分，故有「井」田沃野之说。井宿旁有「北河」「南河」，为戍守之象。"},
+  "鬼": {quote:"舆鬼，鬼祠事。——《史记·天官书》",
+         plain:"鬼宿四星如车舆，中积气如白粉，称「积尸气」，主明察奸邪。",
+         legend:"鬼宿中央的朦胧光斑实为蜂巢星团（M44）；古人视之如鬼眼，主视明察奸、祠祭禳灾。"},
+  "柳": {quote:"柳为鸟注，主草木。——《史记·天官书》",
+         plain:"柳宿八星曲垂如鸟喙，为朱雀之口，主草木。",
+         legend:"柳星又称「味」（喙）：大火历法时代，柳宿晨见正値孟春，草木萌动，故主草木之候。"},
+  "星": {quote:"七星为朱鸟颈。——《史记·天官书》",
+         plain:"星宿七星连如朱雀之颈，主衣裳文绣。",
+         legend:"星宿古名「天都」，七政之枢；七月流火之「火」虽指心宿，然「三星在户」之咏多指此宿，喻文采昭著。"},
+  "张": {quote:"张，素为鸟嗉，主觞客。——《史记·天官书》",
+         plain:"张宿六星如张开的弓与鸟嗉，主宴饮宾客。",
+         legend:"张主「觞客」：天子宴乐之器。张星明则四海宴安、宾主尽欢，故占家以张验「人和」。"},
+  "翼": {quote:"翼为羽翮，主远客。——《史记·天官书》",
+         plain:"翼宿二十二星如朱雀展翅，是二十八宿中星数最多的一宿，主远方来客与乐律。",
+         legend:"翼星明则礼乐兴、远人来朝；乐府以翼宿为乐宗，丝竹之声由此占候。"},
+  "轸": {quote:"轸为车，主风。——《史记·天官书》",
+         plain:"轸宿四星如车厢，主车驾与风候。",
+         legend:"轸旁一星名「长沙」，不欲明也——长沙星明则谷贱伤农；轸又主风，行船者夜观轸星以候风信。"},
+  "北极星": {quote:"譬如北辰，居其所而众星共之。——《论语·为政》",
+         plain:"北极星即勾陈一（小熊座α），距北天极不足一度，终夜几乎不动。",
+         legend:"上古以帝星（小熊座β）为极星，周汉以后渐移至勾陈一——岁差使「帝位」千年一易，众星拱之者始终是当时代的极星。"},
+  "紫微垣": {quote:"中宫天极星，其一明者，太一常居也。——《史记·天官书》",
+         plain:"紫微垣是北极四周的拱极星区，两藩十五星环成宫墙。",
+         legend:"紫微宫是天帝内廷，「太一常居」之处；垣内五星为太子、庶子、后宫、天枢，与北斗同属帝廷禁卫。敦煌星图原图即绘有紫微垣。"},
+  "太微垣": {quote:"太微，三光之廷。——《史记·天官书》",
+         plain:"太微垣是狮子、室女座一带的朝堂星区，五帝座居中。",
+         legend:"日、月、五星经过天区皆先入太微，故称「三光之廷」；五帝座五星各代表一方天帝，谒者、九卿、三公环列如朝仪。"},
+  "织女一": {quote:"迢迢牵牛星，皎皎河汉女。——《古诗十九首》",
+         plain:"织女星是天琴座α，北天第二亮星，青白色。",
+         legend:"织女为天帝之孙，年年织杼劳役；与牛郎隔银河相望，每年七夕鹊桥一会。维加将在约一万两千年后成为北极星——织女终将执掌天极。"},
+  "河鼓二": {quote:"盈盈一水间，脉脉不得语。——《古诗十九首》",
+         plain:"河鼓二即牛郎星（天鹰座α），银河东南岸最亮星。",
+         legend:"河鼓三星中之大者为牛郎，两旁小星是他担筐里的一对儿女；七夕一夜相会，正是「脉脉不得语」的注脚。"},
+  "天津四": {quote:"河汉清且浅，相去复几许。——《古诗十九首》",
+         plain:"天津四（天鹅座α）是「天津」九星中最亮者，横跨银河。",
+         legend:"天津即天上的渡口；七夕喜鹊衔石搭桥的鹊桥，就架在天津九星之间。它与织女、牛郎组成夏季大三角。"},
+  "天狼": {quote:"会挽雕弓如满月，西北望，射天狼。——苏轼《江城子·密州出猎》",
+         plain:"天狼星是大犬座α，全天第一亮星，青白色。",
+         legend:"《楚辞·东君》「举长矢兮射天狼」：天狼东南有弧矢九星张弓相向。古人以天狼主侵掠，见其色变则警边事。"},
+  "老人": {quote:"狼比地有大星，曰南极老人。老人见，治安；不见，兵起。——《史记·天官书》",
+         plain:"老人星即船底座α，全天第二亮星，在中原以北的地平线下。",
+         legend:"南极仙翁、寿星的星象本源即老人星。秋分后老人星见于南天低处，见则人主寿昌、天下安泰。"},
+  "大角": {quote:"大角者，天王帝廷。——《史记·天官书》",
+         plain:"大角星（牧夫座α）是北天第一亮星，橙红色。",
+         legend:"大角与角宿同标苍龙之角；其两旁各有三小星名「摄提」，《天官书》以「摄提格」纪年，是上古岁星纪年的起点。"},
+  "轩辕十四": {quote:"轩辕，黄龙体。——《史记·天官书》",
+         plain:"轩辕十四（狮子座α）是轩辕十七星之首，黄道正贴其上。",
+         legend:"轩辕十七星如黄龙蜿蜒于柳、星之间，主雷雨；尾端大星为女主之象。行星常从轩辕十四近旁经过，是黄道的天然路标。"},
+  "北落师门": {quote:"其南有羽林天军……军门曰北落。——《史记·天官书》",
+         plain:"北落师门（南鱼座α）是秋夜南天几乎唯一的亮星。",
+         legend:"羽林军天区的北军门即「北落」；师门意为军门。它孤悬秋空，波斯人称之「王室之星」，是丝路两端共同守望的亮星。"},
+  "参宿四": {quote:"人生不相见，动如参与商。——杜甫《赠卫八处士》",
+         plain:"参宿四（猎户座α）是红超巨星，冬夜一眼可辨的红星。",
+         legend:"参宿四与心宿二（商星）一冬一夏、此出彼没，永不同现——「参与商」由此成为隔绝之喻。它已进入生命末期，随时可能爆发为超新星。"},
+  "帝星": {quote:"居其所而众星共之。——《论语·为政》（咏北辰）",
+         plain:"帝星（北极二，小熊座β）在周秦时代是最接近天极的星。",
+         legend:"两千五百年前的「北辰」正是帝星；岁差使天极缓缓移向勾陈一，帝星于是「退位」。孔子所咏北辰，很可能是它而非今天的北极星。"}
+};
+
+var WEST_MAP = {
+  "角":"室女","亢":"室女","氐":"天秤","房":"天蝎","心":"天蝎","尾":"天蝎","箕":"人马",
+  "斗":"人马","牛":"摩羯","女":"宝瓶","虚":"宝瓶","危":"宝瓶","室":"飞马","壁":"飞马",
+  "奎":"仙女","娄":"白羊","胃":"白羊","昴":"金牛","毕":"金牛","觜":"猎户","参":"猎户",
+  "井":"双子","鬼":"巨蟹","柳":"长蛇","星":"长蛇","张":"长蛇","翼":"巨爵","轸":"乌鸦",
+  "北斗":"大熊","紫微垣":"小熊","太微垣":"狮子","天市垣":"武仙",
+  "织女一":"天琴","河鼓二":"天鹰","天津四":"天鹅","天狼":"大犬","老人":"船底","大角":"牧夫",
+  "轩辕十四":"狮子","五车二":"御夫","北落师门":"南鱼","南河三":"小犬","北河三":"双子",
+  "参宿四":"猎户","帝星":"小熊"
+};
+
+var DOME_DSO = [
+  {n:'M31 仙女座大星系', ra:0.712, dec:41.27, mag:3.4, size:'178′', type:'旋涡星系',
+   d:'距地球约 254 万光年，是本星系群最大的旋涡星系，也是肉眼可见的最远天体。'},
+  {n:'M42 猎户座大星云', ra:5.588, dec:-5.39, mag:4.0, size:'85′×60′', type:'发射星云',
+   d:'距地球约 1344 光年，银河系内最近的恒星形成区之一，肉眼可见为猎户腰带下方的朦胧光斑。'},
+  {n:'M45 昴星团', ra:3.790, dec:24.12, mag:1.6, size:'110′', type:'疏散星团',
+   d:'中国古代二十八宿中的「昴宿」。约 1 亿年历史，距地 444 光年，肉眼通常可见 6—7 颗。'},
+  {n:'M13 武仙座球状星团', ra:16.695, dec:36.46, mag:5.8, size:'20′', type:'球状星团',
+   d:'由数十万颗老年恒星组成的球状星团，距地约 2.2 万光年。'},
+  {n:'M8 泻湖星云', ra:18.060, dec:-24.38, mag:6.0, size:'90′×40′', type:'发射星云',
+   d:'人马座方向的巨大恒星形成区，距地约 4100 光年，肉眼在银河带中可见为亮斑。'},
+  {n:'M20 三叶星云', ra:18.050, dec:-23.03, mag:6.3, size:'28′', type:'发射星云',
+   d:'因三条尘埃带分割而得名，同时包含发射星云、反射星云与暗星云。'},
+  {n:'M7 托勒密星团', ra:17.900, dec:-34.82, mag:3.3, size:'80′', type:'疏散星团',
+   d:'天蝎座尾部的明亮疏散星团，公元 130 年托勒密即有记载，距地约 980 光年。'},
+  {n:'M11 野鸭星团', ra:18.850, dec:-6.27, mag:6.3, size:'14′', type:'疏散星团',
+   d:'盾牌座中致密的疏散星团，因形似飞行中的鸭群得名。'},
+  {n:'M27 哑铃星云', ra:19.993, dec:22.72, mag:7.4, size:'8′', type:'行星状星云',
+   d:'一颗类太阳恒星死亡后抛出的气壳，距地约 1360 光年，形状像哑铃。'},
+  {n:'M57 环状星云', ra:18.893, dec:33.03, mag:8.8, size:'1.4′', type:'行星状星云',
+   d:'天琴座中著名的环状行星状星云，中心可见白矮星。'},
+  {n:'M81 波德星系', ra:9.926, dec:69.07, mag:6.9, size:'26′', type:'旋涡星系',
+   d:'大熊座方向的大而明亮旋涡星系，距地约 1180 万光年。'},
+  {n:'M82 雪茄星系', ra:9.930, dec:69.68, mag:8.4, size:'11′', type:'星暴星系',
+   d:'与 M81 相互作用的星暴星系，中心正在剧烈形成恒星。'},
+  {n:'M51 涡状星系', ra:13.500, dec:47.20, mag:8.4, size:'11′', type:'旋涡星系',
+   d:'第一个被辨认出旋涡结构的星系（1845 年），正与伴星系 NGC 5195 相互作用。'},
+  {n:'M104 草帽星系', ra:12.674, dec:-11.62, mag:8.0, size:'9′', type:'旋涡星系',
+   d:'侧向朝向我们的星系，尘埃带勾勒出「草帽」的帽檐。'},
+  {n:'M44 蜂巢星团', ra:8.670, dec:19.67, mag:3.7, size:'95′', type:'疏散星团',
+   d:'即中国古代的「积尸气」，鬼宿中的疏散星团，距地约 577 光年。'},
+  {n:'M1 蟹状星云', ra:5.575, dec:22.01, mag:8.4, size:'6′', type:'超新星遗迹',
+   d:'1054 年超新星爆发（中国宋代有详细记录）的遗骸，中心是一颗脉冲星。'}
+];
+
+var GRP_NAME = {"东":"东方苍龙","北":"北方玄武","西":"西方白虎","南":"南方朱雀","垣":"三垣","名":"著名亮星"};
+
+var GRP_COLOR = {"东":"#6FA8DC","北":"#7F8FB0","西":"#E4E8EF","南":"#C96A5B","垣":"#B49FD8","名":"#F0DFA8"};
+</script>
+
+<!-- ============ 详情页（assets/atlas-detail.js 的内联副本） ============ -->
+<script>
+/* ============================================================================
+ * 观星图鉴 · 详情页  (assets/atlas-detail.js)
+ * 独立脚本：只在 body 末注入一个全屏页面，不改动主场景 IIFE。
+ * 数据全部来自页面已有的真实数据表：
+ *   STAR_SET / STAR_PLAIN / STAR_CULTURE / WEST_MAP / GRP_NAME / DOME_DSO
+ * 位置与时间取自 window.__dome.state（当前观测地 + 模拟时刻）。
+ * ========================================================================== */
+(function () {
+  "use strict";
+
+  var DEG = Math.PI / 180;
+  var MONTHS = ['1 月', '2 月', '3 月', '4 月', '5 月', '6 月',
+                '7 月', '8 月', '9 月', '10 月', '11 月', '12 月'];
+  var AZ8 = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'];
+  /* 独立页（观星图鉴.html）里没有 hash 路由，不要改写地址栏 */
+  var STANDALONE = !!window.__ATLAS_STANDALONE;
+
+  /* 图鉴条目顺序（与观星图鉴网格一致） */
+  var ORDER = ['角', '亢', '氐', '房', '心', '尾', '箕',
+               '斗', '牛', '女', '虚', '危', '室', '壁',
+               '奎', '娄', '胃', '昴', '毕', '觜', '参',
+               '井', '鬼', '柳', '星', '张', '翼', '轸',
+               '北斗', '紫微垣', '太微垣', '天市垣',
+               '织女一', '河鼓二', '天津四', '天狼', '老人', '大角',
+               '轩辕十四', '五车二', '北落师门', '南河三', '北河三',
+               '参宿四', '帝星', '北极星'];
+
+  /* 二十八宿星数（与图鉴 info 一致） */
+  var COUNTS = {
+    '角': 2, '亢': 4, '氐': 4, '房': 4, '心': 3, '尾': 9, '箕': 4,
+    '斗': 6, '牛': 6, '女': 4, '虚': 2, '危': 3, '室': 2, '壁': 2,
+    '奎': 16, '娄': 3, '胃': 3, '昴': 7, '毕': 8, '觜': 3, '参': 7,
+    '井': 8, '鬼': 4, '柳': 8, '星': 7, '张': 6, '翼': 22, '轸': 4,
+    '北斗': 7, '北极星': 1
+  };
+
+  /* 北斗七星的拜耳名（写成表比正则解析可靠） */
+  var BEIDOU_BAYER = {
+    '天枢': 'Alp UMa', '天璇': 'Bet UMa', '天玑': 'Gam UMa', '天权': 'Del UMa',
+    '玉衡': 'Eps UMa', '开阳': 'Zet UMa', '摇光': 'Eta UMa'
+  };
+
+  /* 只在有把握时才写的找星路径；其余条目走程序算出来的方位指引 */
+  var TIPS = {
+    '北极星': '先找北斗：勺口的天璇与天枢连线，朝勺口方向延长约 5 倍，就是北极星。也可以用仙后座的「W」开口来指。',
+    '北斗': '勺口两星（天璇→天枢）延长 5 倍指北极星；斗柄的指向随季节转动——东指天下皆春，南指皆夏，西指皆秋，北指皆冬。',
+    '角': '沿北斗斗柄的弧线「春季大曲线」向东延伸，先遇到橙色的大角星，再顺着同一弧度往下，就是蓝白色的角宿一。',
+    '心': '夏季大三角里那颗偏红的就是心宿二（天蝎座心脏）。也可以从大角星向东南方找，天蝎弯曲的尾部尽头便是。',
+    '昴': '冬季傍晚抬头看西南方高处，金牛肩部一小团挤在一起的星星就是昴星团，视力好的能数出 6—7 颗；它与毕宿五、猎户座连成一条线。',
+    '毕': '猎户座肩膀（参宿四）向西北延伸就是毕宿五（金牛座α），橙红色，很好认；毕宿五东南方不远的那颗暗一些的星才是距星毕宿一。',
+    '参': '冬季南方最醒目的三颗等距排列的星是猎户腰带，腰带东南角那颗就是距星参宿一；腰带上方的参宿四偏红，下方参宿七偏蓝。',
+    '觜': '就在猎户头部，参宿四正上方那一小撮星，三颗挤在一起，肉眼看上去像猎户的「头」。',
+    '井': '从猎户座向东北方找，双子座的两颗亮星北河二、北河三是路标；井宿一在它们西侧，是一颗偏红的星。',
+    '鬼': '巨蟹座中央那团朦胧的光斑就是鬼宿里的积尸气（M44），鬼宿四星围着它，城市里要等暗夜才看得清。',
+    '柳': '长蛇座头部往西的那一串暗星，位置在巨蟹座与乌鸦座之间，整体比较暗，建议用双筒镜辅助。',
+    '星': '长蛇座的心脏星宿一（Alphard）是这一带唯一的亮星，孤零零地悬在狮子座与乌鸦座之间，找到它就到星宿了。',
+    '张': '从星宿一继续向东找，长蛇座弯曲的身体中段没有明显亮星，需要借助乌鸦座再往西推。',
+    '翼': '巨爵座（酒杯）在西边，乌鸦座在东南，翼宿就在这两者之间的大片暗星区，靠星座轮廓定位。',
+    '轸': '乌鸦座四颗星组成的四边形就是轸宿，是春季南方天空里最容易认的小四边形之一。',
+    '奎': '秋季傍晚，从飞马座大四方形东侧往外找，仙女座那条星链的起点附近就是奎宿；奎宿一是颗 4 等的黄巨星，不显眼。',
+    '娄': '白羊座的两颗亮星娄宿一（β）和娄宿二（α）位于飞马座脚下，秋季在东方升起。',
+    '室': '秋季飞马座大四边形的西北角就是室宿一（α Peg），旁边紧挨着室宿二，合称「营室」。',
+    '壁': '飞马座大四边形的东北角是壁宿一（γ Peg），与室宿一隔着四边形的一条边相望。',
+    '紫微垣': '北极星周围的拱极天区，终年不落。用北斗和仙后座就能把它围出来，垣内最亮的星是帝星（小熊座β）。',
+    '太微垣': '在狮子座的后半身与室女座之间，春季晚上位于南方高空，狮子座「镰刀」的东侧就是天区入口。',
+    '天市垣': '夏季晚上，从武仙座与蛇夫座之间找，天市垣的星比较暗，需要避开城市灯光。',
+    '织女一': '夏季大三角的直角顶点，青白色，夏夜几乎就在头顶；它属于天琴座，与旁边的织女二是双星。',
+    '河鼓二': '夏季大三角最南端的亮星，就是牛郎星；它两侧各有一颗小星，民间称为「扁担星」。',
+    '天津四': '夏季大三角第三个顶点，位于天鹅座尾部，银河从它身上穿过，是银河最亮的一段。',
+    '天狼': '冬季傍晚向东南方看，全天最亮的星就是它；从猎户腰带三星向东南延长，几乎正指天狼。',
+    '老人': '南方低空才看得到，冬季前后在正南方向贴近地平线；北纬 37° 以北基本看不到。',
+    '大角': '沿北斗斗柄的弧线延长（「春季大曲线」），第一颗遇到的橙色亮星就是大角。',
+    '轩辕十四': '狮子座「镰刀」底部的那颗蓝白色亮星；黄道从它附近经过，月亮和行星常从旁边掠过。',
+    '五车二': '冬季北方高空，御夫座五边形里最亮的那颗，偏黄白色；它几乎整夜可见。',
+    '北落师门': '秋季南方天空里孤零零的一颗亮星，周围没有别的亮星作参照，人称「秋季孤星」。',
+    '南河三': '冬季大三角最东端的亮星，与天狼、参宿四大致等距，位于小犬座。',
+    '北河三': '双子座最亮的那颗（β Gem），偏橙；它与北河二并肩，是双子的一对「头」。',
+    '参宿四': '猎户的肩膀，明显偏红；它是一颗红超巨星，亮度有缓慢起伏，未来可能爆发为超新星。',
+    '帝星': '小熊座的 β 星（Kochab），在北极星旁边；两千多年前它才是离天极最近的「北辰」。'
+  };
+
+  /* ---------------------------------------------------------------- 工具 */
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function pad2(n) { n = Math.round(n); return (n < 10 ? '0' : '') + n; }
+
+  function raText(deg) {
+    var h = (((deg / 15) % 24) + 24) % 24;
+    var hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+    if (mm === 60) { hh = (hh + 1) % 24; mm = 0; }
+    return hh + 'h ' + pad2(mm) + 'm';
+  }
+  function decText(deg) {
+    var s = deg < 0 ? '−' : '+', a = Math.abs(deg);
+    var dd = Math.floor(a), mm = Math.round((a - dd) * 60);
+    if (mm === 60) { dd++; mm = 0; }
+    return s + dd + '° ' + pad2(mm) + '′';
+  }
+
+  /* 球面角距（度） */
+  function angDist(ra1, de1, ra2, de2) {
+    var a1 = ra1 * DEG, a2 = ra2 * DEG, d1 = de1 * DEG, d2 = de2 * DEG;
+    var c = Math.sin(d1) * Math.sin(d2) + Math.cos(d1) * Math.cos(d2) * Math.cos(a1 - a2);
+    c = Math.max(-1, Math.min(1, c));
+    return Math.acos(c) / DEG;
+  }
+
+  /* 本地恒星时（度） */
+  function lstDeg(date, lonDeg) {
+    var jd = date.getTime() / 86400000 + 2440587.5;
+    var D = jd - 2451545.0;
+    var gmst = 280.46061837 + 360.98564736629 * D;
+    return ((gmst + lonDeg) % 360 + 360) % 360;
+  }
+
+  /* 地平坐标 */
+  function altAz(raDeg, decDeg, lst, latDeg) {
+    var H = (lst - raDeg) * DEG, d = decDeg * DEG, la = latDeg * DEG;
+    var sinAlt = Math.sin(d) * Math.sin(la) + Math.cos(d) * Math.cos(la) * Math.cos(H);
+    sinAlt = Math.max(-1, Math.min(1, sinAlt));
+    var alt = Math.asin(sinAlt) / DEG;
+    var az = Math.atan2(-Math.cos(d) * Math.sin(H),
+      Math.sin(d) * Math.cos(la) - Math.cos(d) * Math.sin(la) * Math.cos(H)) / DEG;
+    return { alt: alt, az: (az + 360) % 360 };
+  }
+
+  function azName(a) { return AZ8[Math.round((((a % 360) + 360) % 360) / 45) % 8]; }
+
+  function bestMonth(ra) {
+    var m = Math.round(((ra - 180) / 360) * 12 + 6) % 12;
+    if (m <= 0) m += 12;
+    return m;
+  }
+
+  function hm(h) {
+    h = ((h % 24) + 24) % 24;
+    return pad2(Math.floor(h)) + ':' + pad2((h - Math.floor(h)) * 60);
+  }
+
+  /* -------------------------------------------------------- 观测地/时刻 */
+  function observer() {
+    var st = null;
+    try { st = window.__dome && window.__dome.state; } catch (e) { st = null; }
+    if (st && typeof st.lat === 'number' && typeof st.lon === 'number') {
+      var y = new Date().getFullYear();
+      var day = (typeof st.day === 'number') ? st.day : 0;
+      var hour = (typeof st.hour === 'number') ? st.hour : 22;
+      var date = new Date(y, 0, 1 + day, Math.floor(hour), Math.round((hour % 1) * 60), 0, 0);
+      return { lat: st.lat, lon: st.lon, name: st.locName || '当前观测地', date: date };
+    }
+    return { lat: 40.14, lon: 94.66, name: '敦煌', date: new Date() };
+  }
+
+  /* ------------------------------------------------------------ 数据读取 */
+  function setList() { return window.STAR_SET || []; }
+
+  function findItem(name) {
+    if (name === '北极星') {
+      return {
+        name: '北极星', group: '北', mag: 1.98, spec: 'F', lon: 37.95, lat: 89.26,
+        info: '北极星即勾陈一（小熊座α），距北天极约0.7°，终夜几乎不动，古人以此定时定向。《论语》「譬如北辰，居其所而众星共之」。'
+      };
+    }
+    var arr = setList();
+    for (var i = 0; i < arr.length; i++) if (arr[i].name === name) return arr[i];
+    return null;
+  }
+
+  function kindOf(name, it) {
+    if (name === '北极星') return '亮星';
+    if (it.zone) return '三垣天区';
+    if (it.special) return '星组';
+    if (it.single) return '亮星';
+    return '星宿';
+  }
+
+  /* 从 info 里抽「距星名（西方星）」 */
+  function parseJu(info) {
+    var m = /距星([^（(]+)[（(]([^）)]+)[）)]/.exec(info || '');
+    return m ? { name: m[1], west: m[2] } : null;
+  }
+
+  /* 从 info 里抽拜耳名，如「天琴座α」 */
+  function parseBayer(info) {
+    var m = /([\u4e00-\u9fa5]{2,4}座)\s*([α-ωΑ-Ωa-zA-Z0-9]{1,3})/.exec(info || '');
+    return m ? (m[1] + m[2]) : '';
+  }
+
+  /* 邻近亮星：赤经赤纬接近的「名」组条目 */
+  function nearBright(name, ra, dec, maxDeg) {
+    var out = [], arr = setList();
+    for (var i = 0; i < arr.length; i++) {
+      var s = arr[i];
+      if (!s.single || s.name === name) continue;
+      var d = angDist(ra, dec, s.lon, s.lat);
+      if (d <= maxDeg) out.push({ n: s.name, bayer: parseBayer(s.info), mag: s.mag, d: d });
+    }
+    out.sort(function (a, b) { return a.mag - b.mag; });
+    return out;
+  }
+
+  /* 邻近深空天体 */
+  function nearDSO(ra, dec, maxDeg) {
+    var src = window.DOME_DSO || [], out = [];
+    for (var i = 0; i < src.length; i++) {
+      var o = src[i];
+      var d = angDist(ra, dec, o.ra * 15, o.dec);
+      if (d <= maxDeg) out.push({ n: o.n, type: o.type, mag: o.mag, size: o.size, d: d });
+    }
+    out.sort(function (a, b) { return a.mag - b.mag; });
+    return out;
+  }
+
+  /* -------------------------------------------------------------- 记录体 */
+  function buildRecord(name) {
+    var it = findItem(name);
+    if (!it) return null;
+
+    var plain = (window.STAR_PLAIN || {})[name] || '';
+    var cul = (window.STAR_CULTURE || {})[name] || null;
+    var west = (window.WEST_MAP || {})[name] || '';
+    var grpName = (window.GRP_NAME || {})[it.group] || '';
+    var info = it.info || '';
+    var ju = parseJu(info);
+    var kind = kindOf(name, it);
+
+    var order = ORDER.indexOf(name);
+    var prev = order > 0 ? ORDER[order - 1] : null;
+    var next = order >= 0 && order < ORDER.length - 1 ? ORDER[order + 1] : null;
+
+    /* 宿序（四象内第几宿） */
+    var sub = grpName;
+    if (kind === '星宿') {
+      var groups = { '东': 1, '北': 8, '西': 15, '南': 22 };
+      var start = groups[it.group];
+      if (start) sub = grpName + ' · 第 ' + (order - (start - 1) + 1) + ' 宿';
+    }
+
+    var lead = plain ? plain.split('。')[0] + '。' : (info ? info.split('。')[0] + '。' : '敦煌星图所绘天区之一。');
+
+    return {
+      name: name,
+      it: it,
+      kind: kind,
+      sub: sub,
+      grpName: grpName,
+      west: west,
+      plain: plain,
+      info: info,
+      cul: cul,
+      ju: ju,
+      bayer: parseBayer(info),
+      lead: lead,
+      ra: it.lon,
+      dec: it.lat,
+      mag: it.mag,
+      spec: it.spec,
+      count: COUNTS[name] || 0,
+      bestMonth: bestMonth(it.lon),
+      prev: prev,
+      next: next,
+      fov: (kind === '三垣天区' || name === '北斗') ? 46 : (kind === '亮星' ? 26 : 34)
+    };
+  }
+
+  /* ------------------------------------------------------------ 天区连线图 */
+  function drawChart(cv, rec) {
+    var W = Math.max(320, cv.clientWidth || 520);
+    var H = Math.round(W * 0.58);
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    cv.style.height = H + 'px';
+
+    var g = cv.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, W, H);
+
+    /* 背景 */
+    var bg = g.createRadialGradient(W / 2, H / 2, 10, W / 2, H / 2, Math.max(W, H) * 0.62);
+    bg.addColorStop(0, 'rgba(22,32,58,.92)');
+    bg.addColorStop(1, 'rgba(7,10,20,.96)');
+    g.fillStyle = bg;
+    g.fillRect(0, 0, W, H);
+
+    var ra0 = rec.ra, dec0 = rec.dec, fov = rec.fov;
+    var scale = Math.min(W, H) / (2 * Math.tan(fov / 2 * DEG));
+
+    function proj(ra, dec) {
+      var dr = (ra - ra0) * DEG, d0 = dec0 * DEG, d = dec * DEG;
+      var cosc = Math.sin(d0) * Math.sin(d) + Math.cos(d0) * Math.cos(d) * Math.cos(dr);
+      if (cosc <= 0.08) return null;
+      var x = Math.cos(d) * Math.sin(dr) / cosc;
+      var y = (Math.cos(d0) * Math.sin(d) - Math.sin(d0) * Math.cos(d) * Math.cos(dr)) / cosc;
+      return { x: W / 2 + x * scale, y: H / 2 - y * scale };
+    }
+    function inView(p) {
+      return p && p.x > -60 && p.x < W + 60 && p.y > -60 && p.y < H + 60;
+    }
+
+    /* 二十八宿连线 */
+    var mansions = [];
+    var arr = setList();
+    for (var i = 0; i < arr.length; i++) {
+      var s = arr[i];
+      if (['东', '北', '西', '南'].indexOf(s.group) >= 0 && !s.special) {
+        mansions.push({ n: s.name, p: proj(s.lon, s.lat) });
+      }
+    }
+    g.lineWidth = 1;
+    g.strokeStyle = 'rgba(120,150,205,.42)';
+    g.beginPath();
+    var started = false;
+    for (var k = 0; k < mansions.length; k++) {
+      var p = mansions[k].p;
+      if (!p) { started = false; continue; }
+      if (!started) { g.moveTo(p.x, p.y); started = true; }
+      else g.lineTo(p.x, p.y);
+    }
+    g.stroke();
+
+    /* 其他宿的点 */
+    for (var m = 0; m < mansions.length; m++) {
+      var q = mansions[m].p;
+      if (!inView(q)) continue;
+      var isCur = (mansions[m].n === rec.name);
+      if (isCur) continue;
+      g.beginPath();
+      g.fillStyle = 'rgba(200,214,240,.55)';
+      g.arc(q.x, q.y, 2.2, 0, Math.PI * 2);
+      g.fill();
+      if (fov <= 40) {
+        g.fillStyle = 'rgba(190,200,220,.62)';
+        g.font = '11px "Noto Serif SC","SimSun",serif';
+        g.fillText(mansions[m].n + '宿', q.x + 5, q.y - 5);
+      }
+    }
+
+    /* 邻近名星 */
+    for (var b = 0; b < arr.length; b++) {
+      var st = arr[b];
+      if (!st.single) continue;
+      var pp = proj(st.lon, st.lat);
+      if (!inView(pp)) continue;
+      g.beginPath();
+      g.fillStyle = 'rgba(255,244,224,.9)';
+      g.arc(pp.x, pp.y, 2.6, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = 'rgba(255,240,210,.75)';
+      g.font = '11px "Noto Serif SC","SimSun",serif';
+      g.fillText(st.name, pp.x + 6, pp.y + 4);
+    }
+
+    /* 当前条目 */
+    var cp = proj(ra0, dec0);
+    if (cp) {
+      g.beginPath();
+      g.strokeStyle = 'rgba(232,201,126,.55)';
+      g.lineWidth = 1.2;
+      g.arc(cp.x, cp.y, 12, 0, Math.PI * 2);
+      g.stroke();
+      g.beginPath();
+      g.fillStyle = '#F3D9A4';
+      g.arc(cp.x, cp.y, 5.2, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#F6E3BC';
+      g.font = '600 14px "Noto Serif SC","SimSun",serif';
+      g.fillText(rec.name, cp.x + 14, cp.y + 5);
+    }
+
+    /* 角标 */
+    g.fillStyle = 'rgba(168,159,139,.72)';
+    g.font = '10.5px "Noto Serif SC","SimSun",serif';
+    g.fillText('心射投影 · 视场约 ' + Math.round(fov) + '° · 北在上', 12, H - 12);
+
+    /* 北向箭头 */
+    g.strokeStyle = 'rgba(201,162,92,.6)';
+    g.lineWidth = 1.4;
+    g.beginPath();
+    g.moveTo(W - 34, 44); g.lineTo(W - 34, 20);
+    g.moveTo(W - 39, 26); g.lineTo(W - 34, 18); g.lineTo(W - 29, 26);
+    g.stroke();
+    g.fillStyle = 'rgba(201,162,92,.85)';
+    g.font = '11px "Noto Serif SC","SimSun",serif';
+    g.fillText('N', W - 39, 58);
+  }
+
+  /* -------------------------------------------------------------- 12 月图 */
+  function yearCurve(rec, ob) {
+    var out = [], y = ob.date.getFullYear();
+    for (var m = 0; m < 12; m++) {
+      var d = new Date(y, m, 15, 21, 0, 0, 0);
+      var aa = altAz(rec.ra, rec.dec, lstDeg(d, ob.lon), ob.lat);
+      out.push({ m: m, alt: aa.alt });
+    }
+    return out;
+  }
+
+  /* 升落时刻（约） */
+  function riseSet(rec, ob) {
+    var phi = ob.lat * DEG, dec = rec.dec * DEG;
+    var cosH = -Math.tan(phi) * Math.tan(dec);
+    if (cosH <= -1) return { text: '恒显 · 终夜不落' };
+    if (cosH >= 1) return { text: '恒隐 · 本地不可见' };
+    var H0 = Math.acos(cosH) / DEG;
+    var d0 = new Date(ob.date.getFullYear(), ob.date.getMonth(), ob.date.getDate(), 0, 0, 0, 0);
+    var lst0 = lstDeg(d0, ob.lon);
+    function toLocal(t) {
+      var dh = (((t - lst0) % 360 + 360) % 360) / 15.041;
+      return ((dh + ob.lon / 15) % 24 + 24) % 24;
+    }
+    return { rise: toLocal(rec.ra - H0), set: toLocal(rec.ra + H0) };
+  }
+
+  /* ---------------------------------------------------------------- 渲染 */
+  var root = null, current = null, canvasEl = null;
+
+  function ensureDOM() {
+    if (root) return;
+
+    var css = document.createElement('style');
+    css.textContent = [
+      '#pageAtlasdetail{position:fixed;inset:0;z-index:44;display:none;flex-direction:column;overflow:hidden;',
+      'background:radial-gradient(120% 90% at 50% -10%,rgba(201,162,92,.07),rgba(201,162,92,0) 55%),',
+      'linear-gradient(165deg,#0B1020 0%,#070A16 60%,#05070F 100%);color:var(--ink,#E3DAC8)}',
+      '#pageAtlasdetail.on{display:flex;animation:pgIn .3s cubic-bezier(.18,.72,.2,1)}',
+      '#pageAtlasdetail .ad-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}',
+      '#pageAtlasdetail .ad-scroll::-webkit-scrollbar{width:6px}',
+      '#pageAtlasdetail .ad-scroll::-webkit-scrollbar-thumb{background:rgba(201,162,92,.28);border-radius:3px}',
+      '#pageAtlasdetail .ad-wrap{max-width:1040px;margin:0 auto;padding:18px 26px 60px}',
+      '#pageAtlasdetail .ad-crumb{font-size:11.5px;letter-spacing:.14em;color:var(--ink-dim,#A89F8B);margin-bottom:14px}',
+      '#pageAtlasdetail .ad-crumb a{color:rgba(201,162,92,.9);cursor:pointer;text-decoration:none}',
+      '#pageAtlasdetail .ad-crumb a:hover{color:#F0DFA8}',
+      '#pageAtlasdetail .ad-crumb i{opacity:.45;font-style:normal;margin:0 6px}',
+      '#pageAtlasdetail .ad-kicker{font-size:11px;letter-spacing:.28em;color:var(--gold,#C9A25C)}',
+      '#pageAtlasdetail h1{margin:6px 0 10px;font-family:"Noto Serif SC","STKaiti","KaiTi","SimSun",serif;',
+      'font-size:40px;letter-spacing:.1em;color:#F6E3BC;font-weight:700;line-height:1.2}',
+      '#pageAtlasdetail h1 em{font-size:19px;font-style:normal;letter-spacing:.12em;color:rgba(201,162,92,.85);margin-left:12px}',
+      '#pageAtlasdetail .ad-lead{font-size:14px;line-height:1.95;color:#D9CFBA;max-width:760px;margin:0 0 16px}',
+      '#pageAtlasdetail .ad-btns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}',
+      '#pageAtlasdetail .ad-btn{padding:9px 18px;border-radius:9px;border:1px solid rgba(201,162,92,.42);',
+      'background:rgba(201,162,92,.1);color:#F0DFA8;font-size:13px;cursor:pointer;font-family:inherit;letter-spacing:.08em}',
+      '#pageAtlasdetail .ad-btn:hover{background:rgba(201,162,92,.22)}',
+      '#pageAtlasdetail .ad-btn.go{background:var(--gold,#C9A25C);color:#1A1508;border-color:#E8C97E;font-weight:600}',
+      '#pageAtlasdetail .ad-cols{display:grid;grid-template-columns:1.35fr 1fr;gap:20px;align-items:start}',
+      '@media (max-width:820px){#pageAtlasdetail .ad-cols{grid-template-columns:1fr}',
+      '#pageAtlasdetail h1{font-size:30px}}',
+      '#pageAtlasdetail .ad-fig{margin:0}',
+      '#pageAtlasdetail .ad-fig canvas{width:100%;display:block;border-radius:12px;',
+      'border:1px solid rgba(201,162,92,.22)}',
+      '#pageAtlasdetail .ad-fig figcaption{font-size:11px;color:var(--ink-dim,#A89F8B);margin-top:7px;letter-spacing:.06em}',
+      '#pageAtlasdetail .ad-basic{border:1px solid rgba(201,162,92,.2);border-radius:12px;',
+      'background:rgba(255,255,255,.022);padding:14px 16px}',
+      '#pageAtlasdetail h3{margin:0 0 12px;font-family:"Noto Serif SC","STKaiti","KaiTi","SimSun",serif;',
+      'font-size:16px;letter-spacing:.18em;color:#F0DFA8;font-weight:700;',
+      'display:flex;align-items:center;gap:9px}',
+      '#pageAtlasdetail h3::before{content:"";width:7px;height:7px;background:var(--gold,#C9A25C);transform:rotate(45deg);flex:none}',
+      '#pageAtlasdetail .ad-basic dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:12.5px;line-height:1.6}',
+      '#pageAtlasdetail .ad-basic dt{color:rgba(168,159,139,.92);letter-spacing:.05em;white-space:nowrap}',
+      '#pageAtlasdetail .ad-basic dd{margin:0;color:#F0DFA8;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}',
+      '#pageAtlasdetail .ad-sec{margin-top:30px;padding-top:22px;border-top:1px solid rgba(201,162,92,.14)}',
+      '#pageAtlasdetail .ad-sec p{margin:0 0 10px;font-size:13px;line-height:2;color:#DDD3BF}',
+      '#pageAtlasdetail .ad-quote{margin:0 0 12px;padding:10px 14px;border-left:2px solid rgba(201,162,92,.6);',
+      'border-radius:0 8px 8px 0;background:rgba(201,162,92,.1);color:#F0D9A8;font-size:13px;line-height:1.95;',
+      'font-family:"Noto Serif SC","STKaiti","KaiTi","SimSun",serif}',
+      '#pageAtlasdetail .ad-pos{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}',
+      '#pageAtlasdetail .ad-pos div{padding:11px 13px;border-radius:10px;border:1px solid rgba(201,162,92,.18);',
+      'background:rgba(255,255,255,.022)}',
+      '#pageAtlasdetail .ad-pos b{display:block;font-size:18px;color:#F0DFA8;font-variant-numeric:tabular-nums;',
+      'font-weight:700;line-height:1.4}',
+      '#pageAtlasdetail .ad-pos span{font-size:10.5px;color:rgba(168,159,139,.9);letter-spacing:.12em}',
+      '#pageAtlasdetail .ad-bars{display:flex;align-items:flex-end;gap:5px;height:120px;margin-top:8px}',
+      '#pageAtlasdetail .ad-bars .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;',
+      'align-items:center;gap:5px;height:100%}',
+      '#pageAtlasdetail .ad-bars .bar{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,#E8C97E,#8E6B2F);',
+      'min-height:2px;transition:height .4s}',
+      '#pageAtlasdetail .ad-bars .col > i{font-size:9.5px;color:rgba(168,159,139,.85);font-style:normal}',
+      '#pageAtlasdetail .ad-bars .col > u{font-size:9.5px;color:rgba(201,162,92,.75);text-decoration:none;height:12px}',
+      '#pageAtlasdetail table{width:100%;border-collapse:collapse;font-size:12.5px}',
+      '#pageAtlasdetail th{text-align:left;font-weight:600;color:rgba(168,159,139,.95);font-size:11px;',
+      'letter-spacing:.14em;padding:7px 10px;border-bottom:1px solid rgba(201,162,92,.28)}',
+      '#pageAtlasdetail td{padding:8px 10px;border-bottom:1px solid rgba(201,162,92,.1);color:#E6DCC8}',
+      '#pageAtlasdetail td b{color:#F0DFA8;font-weight:600}',
+      '#pageAtlasdetail .ad-dso{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}',
+      '#pageAtlasdetail .ad-dso div{padding:10px 12px;border-radius:9px;border:1px solid rgba(201,162,92,.16);',
+      'background:rgba(255,255,255,.02);font-size:12px}',
+      '#pageAtlasdetail .ad-dso b{display:block;color:#F0DFA8;font-size:12.5px;margin-bottom:3px}',
+      '#pageAtlasdetail .ad-dso span{color:rgba(168,159,139,.92);font-size:10.5px;letter-spacing:.06em}',
+      '#pageAtlasdetail .ad-pager{display:flex;justify-content:space-between;gap:12px;margin-top:34px;',
+      'padding-top:20px;border-top:1px solid rgba(201,162,92,.14)}',
+      '#pageAtlasdetail .ad-pager button{padding:10px 16px;border-radius:9px;border:1px solid rgba(201,162,92,.3);',
+      'background:rgba(201,162,92,.06);color:#E8DEC6;font-size:12.5px;cursor:pointer;font-family:inherit}',
+      '#pageAtlasdetail .ad-pager button:hover{background:rgba(201,162,92,.18);color:#F6E3BC}',
+      '#pageAtlasdetail .ad-pager button:disabled{opacity:.28;cursor:default}',
+      '#pageAtlasdetail .ad-empty{font-size:12.5px;color:rgba(168,159,139,.8);line-height:1.9}',
+      '#atlPage{background:var(--gold,#C9A25C);color:#1A1508;border-color:#E8C97E;font-weight:600}'
+    ].join('');
+    document.head.appendChild(css);
+
+    root = document.createElement('section');
+    root.id = 'pageAtlasdetail';
+    root.setAttribute('aria-label', '星宿详情页');
+    root.innerHTML =
+      '<header class="pg-head">' +
+        '<h2 id="adHeadTitle">星宿详情</h2>' +
+        '<span class="pg-sub" id="adHeadSub">四象二十八宿</span>' +
+        '<button class="pg-back" type="button" id="adBack">← 返回图鉴</button>' +
+      '</header>' +
+      '<div class="ad-scroll" id="adScroll"><div class="ad-wrap" id="adWrap"></div></div>';
+    document.body.appendChild(root);
+
+    $('adBack').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && root && root.classList.contains('on')) close();
+    });
+    document.addEventListener('click', function (e) {
+      var nav = e.target.closest ? e.target.closest('.pn-btn') : null;
+      if (nav && root && root.classList.contains('on')) close();
+    });
+    window.addEventListener('resize', function () {
+      if (root && root.classList.contains('on') && current && canvasEl) drawChart(canvasEl, current);
+    });
+  }
+
+  function sec(title, bodyHTML) {
+    return '<section class="ad-sec"><h3>' + title + '</h3>' + bodyHTML + '</section>';
+  }
+
+  function render(name) {
+    ensureDOM();
+    var rec = buildRecord(name);
+    if (!rec) return false;
+    current = rec;
+
+    var ob = observer();
+    var lst = lstDeg(ob.date, ob.lon);
+    var aa = altAz(rec.ra, rec.dec, lst, ob.lat);
+    var maxAlt = 90 - Math.abs(ob.lat - rec.dec);
+    var rs = riseSet(rec, ob);
+    var curve = yearCurve(rec, ob);
+
+    $('adHeadTitle').textContent = rec.name + (rec.kind === '星宿' ? '宿' : '');
+    $('adHeadSub').textContent = rec.grpName || rec.kind;
+
+    var title = rec.name + (rec.kind === '星宿' ? '宿' : '');
+    var eng = rec.west ? (rec.west + '座天区') : '';
+
+    /* 基本信息 */
+    var rows = [
+      ['类型', rec.kind],
+      ['所属', rec.grpName || '—'],
+      ['距星', rec.ju ? (rec.ju.name + '（' + rec.ju.west + '）') : '—'],
+      ['星官星数', rec.count ? rec.count + ' 星' : '—'],
+      ['赤经', raText(rec.ra)],
+      ['赤纬', decText(rec.dec)],
+      ['视星等', (typeof rec.mag === 'number') ? rec.mag.toFixed(2) : '—'],
+      ['光谱型', rec.spec ? rec.spec + ' 型' : '—'],
+      ['西方天区', rec.west ? (rec.west + '座') : '三垣无对应'],
+      ['最佳观测', rec.bestMonth + ' 月前后']
+    ];
+    var basicHTML = '<dl>' + rows.map(function (r) {
+      return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>';
+    }).join('') + '</dl>';
+
+    /* 今晚位置 */
+    var posHTML =
+      '<div class="ad-pos">' +
+        '<div><span>此刻高度</span><b>' + aa.alt.toFixed(1) + '°</b></div>' +
+        '<div><span>此刻方位</span><b>' + aa.az.toFixed(0) + '° · ' + azName(aa.az) + '</b></div>' +
+        '<div><span>最高高度</span><b>' + maxAlt.toFixed(0) + '°</b></div>' +
+        '<div><span>今日升起</span><b>' + (rs.text ? '—' : hm(rs.rise)) + '</b></div>' +
+        '<div><span>今日落下</span><b>' + (rs.text ? '—' : hm(rs.set)) + '</b></div>' +
+      '</div>' +
+      '<p style="margin-bottom:6px">' +
+        (aa.alt > 0 ? '此刻它在地平线之上，' : '此刻它在地平线之下，') +
+        '观测地为 ' + esc(ob.name) + '（北纬 ' + ob.lat.toFixed(2) + '°，东经 ' + ob.lon.toFixed(2) + '°）。' +
+        (rs.text ? rs.text + '。' : '升落时刻为当地平太阳时的近似值。') +
+      '</p>';
+
+    /* 12 月高度柱 */
+    var top = 0, bottom = 0;
+    curve.forEach(function (c) { if (c.alt > top) top = c.alt; if (c.alt < bottom) bottom = c.alt; });
+    var span = Math.max(10, top - Math.min(0, bottom));
+    var bars = curve.map(function (c, i) {
+      var h = c.alt > 0 ? Math.max(2, c.alt / span * 100) : 0;
+      return '<div class="col" title="' + MONTHS[i] + ' 21:00 高度 ' + c.alt.toFixed(1) + '°">' +
+        '<u>' + (c.alt > 0 ? Math.round(c.alt) + '°' : '') + '</u>' +
+        '<div class="bar" style="height:' + h + '%"></div>' +
+        '<i>' + (i + 1) + '</i></div>';
+    }).join('');
+    var curveHTML = '<p style="margin:0 0 2px;font-size:11.5px;color:rgba(168,159,139,.9)">' +
+      '每月 15 日 21:00 的高度（' + esc(ob.name) + '）</p><div class="ad-bars">' + bars + '</div>';
+
+    /* 认识 */
+    var knowHTML = '';
+    if (rec.plain) knowHTML += '<p>' + esc(rec.plain) + '</p>';
+    if (rec.info) knowHTML += '<p>' + esc(rec.info) + '</p>';
+    if (!knowHTML) knowHTML = '<p class="ad-empty">暂无更多说明。</p>';
+
+    /* 怎么找 */
+    var tip = TIPS[rec.name];
+    var findTxt = '';
+    if (tip) findTxt += '<p>' + esc(tip) + '</p>';
+
+    /* 用「最佳观测月的 21:00」算方位，而不是此刻 */
+    var aaBest = (function () {
+      var d = new Date(ob.date.getFullYear(), rec.bestMonth - 1, 15, 21, 0, 0, 0);
+      return altAz(rec.ra, rec.dec, lstDeg(d, ob.lon), ob.lat);
+    })();
+    findTxt += '<p>' +
+      esc(rec.bestMonth + ' 月前后是它最合适的时候') + '：那个月晚上九点，它在' + azName(aaBest.az) + '方向，高度约 ' +
+      (aaBest.alt > 0 ? aaBest.alt.toFixed(0) + '°' : '还在地平线下（要等到后半夜）') + '。' +
+      (maxAlt > 0
+        ? '从 ' + esc(ob.name) + ' 看，它最高能升到约 ' + maxAlt.toFixed(0) + '°' +
+          (maxAlt < 15 ? '，也就是说始终贴着地平线，要挑正南或东南方开阔的地方。' : '。')
+        : '从 ' + esc(ob.name) + ' 所在的纬度看，它全年都在地平线以下，本地看不到。') +
+      '</p>';
+    if (rec.kind === '星宿') {
+      findTxt += '<p>二十八宿沿黄道、赤道一带排开，从角宿起向东依次是：' +
+        '角、亢、氐、房、心、尾、箕（东方苍龙），斗、牛、女、虚、危、室、壁（北方玄武），' +
+        '奎、娄、胃、昴、毕、觜、参（西方白虎），井、鬼、柳、星、张、翼、轸（南方朱雀）。' +
+        '找到相邻的' + (rec.prev ? rec.prev + '宿' : '') + (rec.next ? '或' + rec.next + '宿' : '') + '，就能推出它的位置。' +
+        '</p>';
+    }
+
+    /* 名字与传说 */
+    var culHTML = '';
+    if (rec.cul) {
+      if (rec.cul.quote) culHTML += '<div class="ad-quote">' + esc(rec.cul.quote) + '</div>';
+      if (rec.cul.plain) culHTML += '<p>' + esc(rec.cul.plain) + '</p>';
+      if (rec.cul.legend) culHTML += '<p>' + esc(rec.cul.legend) + '</p>';
+    } else if (rec.info) {
+      culHTML = '<p>' + esc(rec.info) + '</p>';
+    } else {
+      culHTML = '<p class="ad-empty">暂无收录。</p>';
+    }
+
+    /* 亮星表 */
+    var starRows = [];
+    if (rec.it && rec.it.stars && rec.it.stars.length) {
+      rec.it.stars.forEach(function (s) {
+        starRows.push([s.n, BEIDOU_BAYER[s.n] || '—', s.mag.toFixed(2)]);
+      });
+    } else {
+      if (rec.ju) starRows.push([rec.ju.name, rec.bayer || '—', (typeof rec.mag === 'number') ? rec.mag.toFixed(2) : '—']);
+      else starRows.push([rec.name, rec.bayer || '—', (typeof rec.mag === 'number') ? rec.mag.toFixed(2) : '—']);
+      nearBright(rec.name, rec.ra, rec.dec, 15).forEach(function (s) {
+        starRows.push([s.n, s.bayer || '—', s.mag.toFixed(2)]);
+      });
+    }
+    var starHTML = '<table><thead><tr><th>恒星</th><th>拜耳名</th><th>视星等</th></tr></thead><tbody>' +
+      starRows.map(function (r) {
+        return '<tr><td><b>' + esc(r[0]) + '</b></td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>';
+      }).join('') + '</tbody></table>' +
+      (starRows.length <= 1
+        ? '<p class="ad-empty" style="margin-top:10px">本宿以距星定位，其余多为暗星；完整星官构成见上方「认识」。</p>'
+        : '');
+
+    /* 附近深空天体 */
+    var dsos = nearDSO(rec.ra, rec.dec, 14);
+    var dsoHTML;
+    if (dsos.length) {
+      dsoHTML = '<div class="ad-dso">' + dsos.slice(0, 8).map(function (o) {
+        return '<div><b>' + esc(o.n) + '</b><span>' + esc(o.type) + ' · ' + o.mag.toFixed(1) + ' 等 · 距此 ' +
+          o.d.toFixed(1) + '°</span></div>';
+      }).join('') + '</div>';
+    } else {
+      dsoHTML = '<p class="ad-empty">这一带 14° 范围内暂未收录梅西耶天体。</p>';
+    }
+
+    /* 上下条 */
+    var pager = '<div class="ad-pager">' +
+      '<button type="button" ' + (rec.prev ? 'data-ad-prev="' + esc(rec.prev) + '"' : 'disabled') + '>← ' +
+        (rec.prev ? esc(rec.prev + (ORDER.indexOf(rec.prev) < 28 ? '宿' : '')) : '已是第一条') + '</button>' +
+      '<button type="button" ' + (rec.next ? 'data-ad-next="' + esc(rec.next) + '"' : 'disabled') + '>' +
+        (rec.next ? esc(rec.next + (ORDER.indexOf(rec.next) < 28 ? '宿' : '')) : '已是最后一条') + ' →</button>' +
+      '</div>';
+
+    var html =
+      '<div class="ad-crumb"><a id="adCrumb">观星图鉴</a><i>/</i>' +
+        '<span>' + esc(rec.grpName || rec.kind) + '</span><i>/</i><b>' + esc(title) + '</b></div>' +
+      '<div class="ad-kicker">' + esc(rec.kind) + (rec.sub ? ' · ' + esc(rec.sub) : '') + '</div>' +
+      '<h1>' + esc(title) + (eng ? '<em>' + esc(eng) + '</em>' : '') + '</h1>' +
+      '<p class="ad-lead">' + esc(rec.lead) + '</p>' +
+      '<div class="ad-btns">' +
+        '<button class="ad-btn go" type="button" id="adSky">在星图中查看</button>' +
+        '<button class="ad-btn" type="button" id="adFocus">居中并跟随</button>' +
+      '</div>' +
+      '<div class="ad-cols">' +
+        '<figure class="ad-fig"><canvas id="adCanvas"></canvas>' +
+          '<figcaption>' + esc(title) + '及邻近二十八宿的相对位置；圆点大小只做示意，坐标为真实赤经赤纬。</figcaption>' +
+        '</figure>' +
+        '<aside class="ad-basic"><h3>基本信息</h3>' + basicHTML + '</aside>' +
+      '</div>' +
+      sec('今晚位置', posHTML + curveHTML) +
+      sec('认识' + esc(title), knowHTML) +
+      sec('怎么找', findTxt) +
+      sec('名字与传说', culHTML) +
+      sec('亮星', starHTML) +
+      sec('附近深空天体', dsoHTML) +
+      pager;
+
+    $('adWrap').innerHTML = html;
+
+    canvasEl = $('adCanvas');
+    drawChart(canvasEl, rec);
+    $('adScroll').scrollTop = 0;
+
+    /* 交互 */
+    $('adCrumb').addEventListener('click', function () {
+      close();
+      if (window.__pageApp) window.__pageApp.go('atlas');
+    });
+    $('adSky').addEventListener('click', function () { goSky(rec.name); });
+    $('adFocus').addEventListener('click', function () { goSky(rec.name, true); });
+    Array.prototype.forEach.call($('adWrap').querySelectorAll('[data-ad-prev],[data-ad-next]'), function (b) {
+      b.addEventListener('click', function () {
+        render(b.getAttribute('data-ad-prev') || b.getAttribute('data-ad-next'));
+      });
+    });
+
+    return true;
+  }
+
+  function goSky(name, center) {
+    close();
+    try {
+      if (window.__pageApp) window.__pageApp.go('star');
+      if (center && window.__focusStar) window.__focusStar(name);
+      else if (window.__highlightByName) window.__highlightByName(name);
+    } catch (e) { /* 静默 */ }
+  }
+
+  function open(name) {
+    if (!render(name)) {
+      if (window.__toast) window.__toast('这条还没有详情页');
+      return;
+    }
+    root.classList.add('on');
+    if (STANDALONE) { if (window.__AtlasApp) window.__AtlasApp.refresh(); return; }
+    document.body.classList.add('page-off');
+    try {
+      var h = (location.hash || '').replace(/^#/, '');
+      var parts = h.split('&').filter(function (kv) { return kv && kv.split('=')[0] !== 'a'; });
+      parts.push('a=' + encodeURIComponent(name));
+      location.hash = '#' + parts.join('&');
+    } catch (e) { /* 静默 */ }
+  }
+
+  function close() {
+    if (!root) return;
+    root.classList.remove('on');
+    if (STANDALONE) { if (window.__AtlasApp) window.__AtlasApp.refresh(); return; }
+    try {
+      var h = (location.hash || '').replace(/^#/, '');
+      var parts = h.split('&').filter(function (kv) { return kv && kv.split('=')[0] !== 'a'; });
+      location.hash = parts.length ? ('#' + parts.join('&')) : '';
+    } catch (e) { /* 静默 */ }
+    if (window.__AtlasApp) window.__AtlasApp.refresh();
+  }
+
+  function isOpen() { return !!(root && root.classList.contains('on')); }
+
+  window.__AtlasDetail = { open: open, close: close, isOpen: isOpen, _build: buildRecord };
+
+  /* 深链接：#c=atlas&a=角 自动打开对应详情页 */
+  function openFromHash() {
+    if (STANDALONE) return;
+    var h = location.hash || '';
+    var m = /[?&]?a=([^&]+)/.exec(h);
+    if (!/c=atlas/.test(h) || !m) {
+      /* 后退键去掉了 a=：收起详情页，但保留图鉴页 */
+      if (isOpen()) {
+        root.classList.remove('on');
+        if (!/c=atlas/.test(h)) document.body.classList.remove('page-off');
+      }
+      return;
+    }
+    var n = decodeURIComponent(m[1]);
+    if (isOpen() && current && current.name === n) return;
+    if (!render(n)) return;
+    root.classList.add('on');
+    document.body.classList.add('page-off');
+  }
+  window.addEventListener('hashchange', openFromHash);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(openFromHash, 260); });
+  } else {
+    setTimeout(openFromHash, 260);
+  }
+})();
+
+</script>
+
+<!-- ============ 图鉴网格 ============ -->
+<script>
+(function () {
+  "use strict";
+  window.__ATLAS_STANDALONE = true;
+  /* 独立页里没有 3D 场景，「在星空中查看」跳回主文件并聚焦 */
+  window.__focusStar = function (name) {
+    location.href = '敦煌星图3D天球.html#c=star&f=' + encodeURIComponent(name);
+  };
+  window.__highlightByName = window.__focusStar;
+  window.__pageApp = { go: function () {} };
+  window.__toast = window.__toast || function (m) {
+    var t = document.createElement('div');
+    t.textContent = m;
+    t.style.cssText = 'position:fixed;left:50%;bottom:36px;transform:translateX(-50%);' +
+      'background:rgba(11,16,32,.95);border:1px solid rgba(201,162,92,.45);color:#F3D9A4;' +
+      'padding:10px 18px;border-radius:10px;font-size:13px;z-index:999;pointer-events:none';
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2200);
+  };
+
+  var GROUPS = { '东': '东方苍龙 · 七宿', '北': '北方玄武 · 七宿', '西': '西方白虎 · 七宿',
+                 '南': '南方朱雀 · 七宿', '垣': '三垣 · 天区', '名': '著名亮星' };
+  var TOTAL = 46, LIT_KEY = 'dg_atlas_lit';
+  var gridsEl = document.getElementById('atlGrids');
+  var countEl = document.getElementById('atlCount');
+  var barEl = document.getElementById('atlBar');
+
+  function loadLit() {
+    try { return JSON.parse(localStorage.getItem(LIT_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function saveLit(a) { try { localStorage.setItem(LIT_KEY, JSON.stringify(a)); } catch (e) {} }
+  var lit = loadLit();
+
+  function findData(name) {
+    if (name === '北极星') return { name: '北极星', mag: 1.98 };
+    var arr = window.STAR_SET || [];
+    for (var i = 0; i < arr.length; i++) if (arr[i].name === name) return arr[i];
+    return null;
+  }
+
+  function itemEl(name, special) {
+    var d = findData(name);
+    var noSuffix = !!(special || (d && (d.single || d.zone)) || name === '北极星');
+    var b = document.createElement('div');
+    b.className = 'atl-item' + (lit.indexOf(name) >= 0 ? ' lit' : '');
+    b.setAttribute('role', 'button');
+    b.tabIndex = 0;
+    b.title = '查看 ' + name + ' 详情';
+    b.innerHTML = '<b>' + name + (noSuffix ? '' : '宿') + '</b>' +
+      '<span class="m">' + (d && d.mag !== undefined ? '星等 ' + d.mag.toFixed(1)
+        : (special ? '星组' : (d && d.zone ? '天区' : '—'))) + '</span>';
+    function openIt() {
+      if (lit.indexOf(name) < 0) { lit.push(name); saveLit(lit); refresh(); }
+      if (window.__AtlasDetail) window.__AtlasDetail.open(name);
+    }
+    b.addEventListener('click', openIt);
+    b.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openIt(); } });
+    return b;
+  }
+
+  function refresh() {
+    if (!gridsEl) return;
+    gridsEl.innerHTML = '';
+    Object.keys(GROUPS).forEach(function (g) {
+      var wrap = document.createElement('div');
+      wrap.className = 'atl-group';
+      var h = document.createElement('h3');
+      h.innerHTML = '<i style="background:' + ((window.GRP_COLOR || {})[g] || '#C9A25C') + '"></i>' + GROUPS[g];
+      wrap.appendChild(h);
+      var grid = document.createElement('div');
+      grid.className = 'atl-grid';
+      (window.STAR_SET || []).forEach(function (s) {
+        if (s.group !== g || s.special) return;
+        grid.appendChild(itemEl(s.name, false));
+      });
+      if (g === '北') {
+        (window.STAR_SET || []).forEach(function (s) {
+          if (s.special) grid.appendChild(itemEl(s.name, true));
+        });
+        grid.appendChild(itemEl('北极星', true));
+      }
+      wrap.appendChild(grid);
+      gridsEl.appendChild(wrap);
+    });
+    var n = lit.length;
+    if (countEl) countEl.textContent = '已点亮 ' + n + ' / ' + TOTAL;
+    if (barEl) barEl.style.width = (n / TOTAL * 100).toFixed(1) + '%';
+  }
+
+  window.__AtlasApp = { refresh: refresh };
+  refresh();
+
+  /* 详情页关闭后回到网格时刷新一次点亮状态 */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && window.__AtlasDetail && !window.__AtlasDetail.isOpen()) refresh();
+  });
+})();
+</script>
+
+</body>
+</html>

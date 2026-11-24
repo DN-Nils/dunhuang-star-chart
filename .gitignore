@@ -1,0 +1,21 @@
+# 备份与历史归档（非运行依赖，不入库）
+*.bak
+_backup/
+_归档/
+_tools/
+
+# 社区数据库：由 app.py 自动创建，不入库（避免混入个人数据）
+community.db
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 系统与编辑器垃圾
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
